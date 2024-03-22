@@ -11,7 +11,9 @@ pipeline {
                     def imageTag = 'latest'
                     echo "test valid"
                     // Docker build command
-                    docker.build("${imageName}:${imageTag}", "-f ${dockerFile} .")
+                    /*docker.build("${imageName}:${imageTag}", "-f ${dockerFile} .")*/
+                    sh '/usr/bin/docker build -t test:latest -f ./Dockerfile .'
+
                 }
             }
         }
