@@ -19,12 +19,20 @@ pipeline {
    stage(phpstan_scan){
       steps{
           script{
-            sh "docker exec phpstan \ mkdir -p /tmp/phpstan_cache"
-            sh "docker exec phpstan \ chmod 755 /tmp/phpstan_cache"
+            sh """
+            docker exec phpstan \
+            mkdir -p /tmp/phpstan_cache
+             """
+            sh """docker exec phpstan \
+            chmod 755 /tmp/phpstan_cache"""
             // Create directory for reports
-            sh "docker exec phpstan \ mkdir -p test-reports"
+            sh """docker exec phpstan \ 
+            mkdir -p test-reports
+             """
             // Run PHPStan inside PHPStan container
-            sh "docker exec phpstan \ phpstan -vvv analyse --error-format=json -a build/phpstan/bootstrap_action.php > test-reports/phpstan-report.json"
+            sh """docker exec phpstan \ 
+            phpstan -vvv analyse --error-format=json -a build/phpstan/bootstrap_action.php > test-reports/phpstan-report.json
+             """
           }
       }
     }
