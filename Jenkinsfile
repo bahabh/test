@@ -9,7 +9,7 @@ pipeline {
                          echo "Pulling up last VMS container --> End"
                          echo "Starting container --> Start"
                          sh """
-                         docker run -dt --name phpstan \
+                         docker run -dt --name iyed \
                          iyedbnaissa/phpstan:29 \
                          /bin/bash
                          """
@@ -18,7 +18,7 @@ pipeline {
          }
    stage(phpstan_scan){
       steps{
-         container('phpstan'){
+         container('iyed'){
           script{
             sh "mkdir -p /tmp/phpstan_cache"
             sh "chmod 755 /tmp/phpstan_cache"
