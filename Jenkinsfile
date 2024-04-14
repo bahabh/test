@@ -5,12 +5,12 @@ pipeline {
              steps {
                  script {
                          echo "Pulling up last OWASP ZAP container --> Start"
-                         sh 'docker pull iyedbnaissa/phpstan:29'
+                         sh 'docker pull phpstan/phpstan:nightly'
                          echo "Pulling up last VMS container --> End"
                          echo "Starting container --> Start"
                          sh """
-                         docker run -dt --name zabromek \
-                         iyedbnaissa/phpstan:29 \
+                         docker run -dt --name nightly \
+                         phpstan/phpstan:nightly \
                          /bin/bash
                          """
                  }
@@ -21,12 +21,12 @@ pipeline {
           script{
             // Create directory for reports
             sh """
-            docker exec zabromek \
+            docker exec nightly \
             mkdir -p test-reports
              """
             // Run PHPStan inside PHPStan container
             sh """
-            docker exec zabromek \
+            docker exec nightly \
             phpstan -vvv analyse --error-format=json -a build/phpstan/bootstrap_action.php > test-reports/phpstan-report.json
              """
           }
