@@ -9,7 +9,7 @@ pipeline {
                          echo "Pulling up last VMS container --> End"
                          echo "Starting container --> Start"
                          sh """
-                         docker run -dt --name baha \
+                         docker run -dt --name zab \
                          iyedbnaissa/phpstan:29 \
                          /bin/bash
                          """
@@ -21,12 +21,12 @@ pipeline {
           script{
             // Create directory for reports
             sh """
-            docker exec baha \
+            docker exec zab \
             mkdir -p test-reports
              """
             // Run PHPStan inside PHPStan container
             sh """
-            docker exec baha \
+            docker exec zab \
             phpstan -vvv analyse --error-format=json -a build/phpstan/bootstrap_action.php > test-reports/phpstan-report.json
              """
           }
