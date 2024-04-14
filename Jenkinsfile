@@ -9,8 +9,8 @@ pipeline {
                          echo "Pulling up last VMS container --> End"
                          echo "Starting container --> Start"
                          sh """
-                         docker run -dt --name owasp \
-                         owasp/zap2docker-stable \
+                         docker run -dt --name phpstan \
+                         iyedbnaissa/phpstan:29 \
                          /bin/bash
                          """
                  }
@@ -18,7 +18,6 @@ pipeline {
          }
    stage(phpstan_scan){
       steps{
-        container('phpstan'){
           script{
             sh "mkdir -p /tmp/phpstan_cache"
             sh "chmod 755 /tmp/phpstan_cache"
@@ -27,7 +26,6 @@ pipeline {
             // Run PHPStan inside PHPStan container
             sh "phpstan -vvv analyse --error-format=json -a build/phpstan/bootstrap_action.php > test-reports/phpstan-report.json"
           }
-        }
       }
     }
     stage('SonarQube Analysis') {
