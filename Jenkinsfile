@@ -19,14 +19,6 @@ pipeline {
    stage(phpstan_scan){
       steps{
           script{
-            sh """
-            docker exec baha \
-            mkdir -p /tmp/phpstan_cache
-             """
-            sh """
-            docker exec baha \
-            chmod 755 /tmp/phpstan_cache
-             """
             // Create directory for reports
             sh """
             docker exec baha \
