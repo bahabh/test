@@ -1,40 +1,11 @@
-def scan_type
- def target
- pipeline {
-     agent any
-     parameters {
-         choice  choices: ["Baseline", "APIS", "Full"],
-                 description: 'Type of scan that is going to perform inside the container',
-                 name: 'SCAN_TYPE'
- 
-         string defaultValue: "http://dolibarr.dolibarr.svc.hbenaissa.local",
-                 description: 'Target URL to scan',
-                 name: 'TARGET'
- 
-         booleanParam defaultValue: true,
-                 description: 'Parameter to know if wanna generate report.',
-                 name: 'GENERATE_REPORT'
-     }
-     stages {
-         stage('Pipeline Info') {
-                 steps {
-                     script {
-                         echo "<--Parameter Initialization-->"
-                         echo """
-                         The current parameters are:
-                             Scan Type: ${params.SCAN_TYPE}
-                             Target: ${params.TARGET}
-                             Generate report: ${params.GENERATE_REPORT}
-                         """
-                     }
-                 }
-         }
- 
-         stage('Setting up OWASP ZAP docker container') {
+pipeline {
+   agent any
+  stages {
+    stage('Setting up OWASP ZAP docker container') {
              steps {
                  script {
                          echo "Pulling up last OWASP ZAP container --> Start"
-                         sh 'docker pull owasp/zap2docker-stable'
+                         sh 'docker pull iyedbnaissa/phpstan:29'
                          echo "Pulling up last VMS container --> End"
                          echo "Starting container --> Start"
                          sh """
@@ -45,80 +16,35 @@ def scan_type
                  }
              }
          }
- 
- 
-         stage('Prepare wrk directory') {
-             when {
-                         environment name : 'GENERATE_REPORT', value: 'true'
-             }
-             steps {
-                 script {
-                         sh """
-                             docker exec owasp \
-                             mkdir /zap/wrk
-                         """
-                     }
-                 }
-         }
- 
- 
-         stage('Scanning target on owasp container') {
-             steps {
-                 script {
-                     scan_type = "${params.SCAN_TYPE}"
-                     echo "----> scan_type: $scan_type"
-                     target = "${params.TARGET}"
-                     if(scan_type == "Baseline"){
-                         sh """
-                             docker exec owasp \
-                             zap-baseline.py \
-                             -t $target \
-                             -x report.xml \
-                             -I
-                         """
-                     }
-                     else if(scan_type == "APIS"){
-                         sh """
-                             docker exec owasp \
-                             zap-api-scan.py \
-                             -t $target \
-                             -x report.xml \
-                             -I
-                         """
-                     }
-                     else if(scan_type == "Full"){
-                         sh """
-                             docker exec owasp \
-                             zap-full-scan.py \
-                             -t $target \
-                             //-x report.xml
-                             -I
-                         """
-                         //-x report-$(date +%d-%b-%Y).xml
-                     }
-                     else{
-                         echo "Something went wrong..."
-                     }
-                 }
-             }
-         }
-         stage('Copy Report to Workspace'){
-             steps {
-                 script {
-                     sh '''
-                         docker cp owasp:/zap/wrk/report.xml ${WORKSPACE}/report.xml
-                     '''
-                 }
-             }
-         }
-     }
-     post {
-             always {
-                 echo "Removing container"
-                 sh '''
-                     docker stop owasp
-                     docker rm owasp
-                 '''
-             }
-         }
- }
+   stage(phpstan_scan){
+      steps{
+        container('phpstan'){
+          script{
+            sh "mkdir -p /tmp/phpstan_cache"
+            sh "chmod 755 /tmp/phpstan_cache"
+            // Create directory for reports
+            sh "mkdir -p test-reports"
+            // Run PHPStan inside PHPStan container
+            sh "phpstan -vvv analyse --error-format=json -a build/phpstan/bootstrap_action.php > test-reports/phpstan-report.json"
+          }
+        }
+      }
+    }
+    stage('SonarQube Analysis') {
+      environment {
+             SONAR_SCANNER_OPTS = "-Xmx512m"
+      }
+      steps {
+        script {
+          def scannerHome = tool 'SonarQube_Scanner';
+          // Execute SonarQube analysis
+          withSonarQubeEnv('SonarQube_Server') {
+           
+            sh "${scannerHome}/bin/sonar-scanner -Dproject.settings=sonar-project.properties"
+          }
+        }
+      }
+    }
+    
+  }
+}
