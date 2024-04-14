@@ -29,12 +29,12 @@ pipeline {
              """
             // Create directory for reports
             sh """
-            docker exec phpstan \ 
+            docker exec phpstan \
             mkdir -p test-reports
              """
             // Run PHPStan inside PHPStan container
             sh """
-            docker exec phpstan \ 
+            docker exec phpstan \
             phpstan -vvv analyse --error-format=json -a build/phpstan/bootstrap_action.php > test-reports/phpstan-report.json
              """
           }
